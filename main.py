@@ -9,7 +9,7 @@ def get_weather(citta):
     url = "https://api.openweathermap.org/data/2.5/weather"
 
     params = {
-        "q": città,
+        "q": citta,
         "appid": API_KEY,
         "units": "metric"
     }
@@ -30,17 +30,17 @@ def get_weather(citta):
         "vento": data["wind"]["speed"]
     }
 
-città_list = []
-città = input("Inserisci città: ")
-città_list.append(città)
-città = input("Inserisci città: ")
-città_list.append(città)
-città = input("Inserisci città: ")
-città_list.append(città)
+citta_list = []
+citta = input("Inserisci città: ")
+citta_list.append(citta)
+citta = input("Inserisci città: ")
+citta_list.append(citta)
+citta = input("Inserisci città: ")
+citta_list.append(citta)
 
 risultati = []
 
-for citta in città_list:
+for citta in citta_list:
     dati = get_weather(citta)
 
     if dati:
