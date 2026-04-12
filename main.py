@@ -1,44 +1,54 @@
 import requests
-import pandas as pd
 import os
+import pandas as pd
 
 API_KEY = os.getenv("API_KEY")
 
-url = "https://api.openweathermap.org/data/2.5/weather"
 
+def get_weather(citta):
+    url = "https://api.openweathermap.org/data/2.5/weather"
+
+    params = {
+        "q": città,
+        "appid": API_KEY,
+        "units": "metric"
+    }
+
+    response = requests.get(url, params=params)
+
+    if response.status_code != 200:
+        print(f"Errore con città: {citta}")
+        return None
+
+    data = response.json()
+
+    return {
+        "citta": citta,
+        "temperatura": data["main"]["temp"],
+        "umidita": data["main"]["humidity"],
+        "meteo": data["weather"][0]["description"],
+        "vento": data["wind"]["speed"]
+    }
+
+città_list = []
 città = input("Inserisci città: ")
+città_list.append(città)
+città = input("Inserisci città: ")
+città_list.append(città)
+città = input("Inserisci città: ")
+città_list.append(città)
 
-params = {
-    "q": città,
-    "appid": API_KEY,
-    "units": "metric"
-}
+risultati = []
 
-response = requests.get(url, params=params)
+for citta in città_list:
+    dati = get_weather(citta)
 
-print("Status code:", response.status_code)
-print(response.json())
-data = response.json()
+    if dati:
+        risultati.append(dati)
 
-if data["cod"] != 200:
-    print("Città non trovata")
+print(risultati)
 
-temperatura = data["main"]["temp"]
-umidita = data["main"]["humidity"]
-meteo = data["weather"][0]["description"]
-vento = data["wind"]["speed"]
+df = pd.DataFrame(risultati)
+df.to_csv("meteo.csv", index=False)
 
-print("Temperatura:", temperatura)
-print("Meteo:", meteo)
-print("Umidità:", umidita)
-print("Vento:", vento)
-
-df = pd.DataFrame([{
-    "citta": città,
-    "temperatura": temperatura,
-    "meteo": meteo,
-    "umidita": umidita,
-    "vento": vento
-}])
-
-df.to_csv("meteo.csv", mode="a", header=False, index=False)
+print("Dati salvati su meteo.csv")
