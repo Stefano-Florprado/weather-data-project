@@ -1,4 +1,4 @@
-citta,temperatura,umidita,meteo,vento
-Milano,16.18,64,broken clouds,2.57
-Roma,11.7,46,overcast clouds,4.12
-Viterbo,17.14,61,clear sky,2.57
+citta,temperatura,umidita,meteo,vento,data
+Milano,16.18,64,broken clouds,3.6,2026-04-12 18:46:21
+Roma,11.7,46,overcast clouds,4.12,2026-04-12 18:46:21
+Viterbo,17.14,61,clear sky,2.57,2026-04-12 18:46:21

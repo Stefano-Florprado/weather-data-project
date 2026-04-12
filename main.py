@@ -1,6 +1,7 @@
 import requests
 import os
 import pandas as pd
+from datetime import datetime
 
 API_KEY = os.getenv("API_KEY")
 
@@ -27,8 +28,9 @@ def get_weather(citta):
         "temperatura": data["main"]["temp"],
         "umidita": data["main"]["humidity"],
         "meteo": data["weather"][0]["description"],
-        "vento": data["wind"]["speed"]
-    }
+        "vento": data["wind"]["speed"],
+        "data": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+   }
 
 citta_list = []
 citta = input("Inserisci città: ")
