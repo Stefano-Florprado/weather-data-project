@@ -2,6 +2,7 @@ import requests
 import os
 import pandas as pd
 from datetime import datetime
+import sqlite3
 
 API_KEY = os.getenv("API_KEY")
 
@@ -32,13 +33,32 @@ def get_weather(citta):
         "data": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
    }
 
-citta_list = []
-citta = input("Inserisci città: ")
-citta_list.append(citta)
-citta = input("Inserisci città: ")
-citta_list.append(citta)
-citta = input("Inserisci città: ")
-citta_list.append(citta)
+conn = sqlite3.connect("meteo.db")
+cursor = conn.cursor()
+
+cursor.execute("""
+    DROP TABLE IF EXISTS meteo
+""")
+
+cursor.execute("""
+    CREATE TABLE IF NOT EXISTS meteo (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        citta TEXT UNIQUE,
+        temperatura REAL,
+        umidita REAL,
+        meteo TEXT,
+        vento REAL,
+        data TEXT
+    )
+""")
+
+citta_list = ['Milano', 'Roma', 'Magenta']
+#citta = input("Inserisci città: ")
+#citta_list.append(citta)
+#citta = input("Inserisci città: ")
+#citta_list.append(citta)
+#citta = input("Inserisci città: ")
+#citta_list.append(citta)
 
 risultati = []
 
@@ -47,8 +67,22 @@ for citta in citta_list:
 
     if dati:
         risultati.append(dati)
-
+        cursor.execute("""
+            INSERT INTO meteo (citta, temperatura, umidita, meteo, vento, data)
+            VALUES (?, ?, ?, ?, ?, ?)
+        """, (
+                dati["citta"], 
+                dati["temperatura"], 
+                dati["umidita"], 
+                dati["meteo"], 
+                dati["vento"], 
+                str(dati["data"])
+            )
+        )
+conn.commit()
+conn.close()
 print(risultati)
+print("Dati salvati su meteo.db")
 
 df = pd.DataFrame(risultati)
 df.to_csv("meteo.csv", index=False)
