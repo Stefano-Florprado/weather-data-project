@@ -1,8 +1,13 @@
 import requests
 import os
 import pandas as pd
-from datetime import datetime
 import sqlite3
+import time
+from datetime import datetime
+from db import salva_db
+from csv_utils import salva_csv
+from dotenv import load_dotenv
+load_dotenv()
 
 API_KEY = os.getenv("API_KEY")
 
@@ -36,14 +41,14 @@ def get_weather(citta):
 conn = sqlite3.connect("meteo.db")
 cursor = conn.cursor()
 
-cursor.execute("""
-    DROP TABLE IF EXISTS meteo
-""")
+#cursor.execute("""
+#    DROP TABLE IF EXISTS meteo
+#""")
 
 cursor.execute("""
     CREATE TABLE IF NOT EXISTS meteo (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        citta TEXT UNIQUE,
+        citta TEXT,
         temperatura REAL,
         umidita REAL,
         meteo TEXT,
@@ -59,32 +64,43 @@ citta_list = ['Milano', 'Roma', 'Magenta']
 #citta_list.append(citta)
 #citta = input("Inserisci città: ")
 #citta_list.append(citta)
+def run_pipeline():
 
-risultati = []
+    risultati = []
+    for citta in citta_list:
+        dati = get_weather(citta)
+        
+        if dati:
+            risultati.append(dati)
+            salva_db(cursor, dati)
 
-for citta in citta_list:
-    dati = get_weather(citta)
+    conn.commit()
+    print("Dati salvati su meteo.db")
 
-    if dati:
-        risultati.append(dati)
-        cursor.execute("""
-            INSERT INTO meteo (citta, temperatura, umidita, meteo, vento, data)
-            VALUES (?, ?, ?, ?, ?, ?)
-        """, (
-                dati["citta"], 
-                dati["temperatura"], 
-                dati["umidita"], 
-                dati["meteo"], 
-                dati["vento"], 
-                str(dati["data"])
-            )
-        )
-conn.commit()
-conn.close()
-print(risultati)
-print("Dati salvati su meteo.db")
+    salva_csv(risultati)
 
-df = pd.DataFrame(risultati)
-df.to_csv("meteo.csv", index=False)
+    cursor.execute("""
+    SELECT 
+        citta,
+        COUNT(*) as numero_rilevazioni,
+        ROUND(AVG(temperatura), 2) as temperatura_media,
+        MAX(temperatura) as temperatura_massima,
+        MIN(temperatura) as temperatura_minima
+    FROM meteo
+    GROUP BY citta
+    ORDER BY temperatura_media DESC
+    """)
 
-print("Dati salvati su meteo.csv")
+    rows = cursor.fetchall()
+    for row in rows:
+        print(row)
+try:
+    while True:
+        run_pipeline()
+
+        print("Attendo 60 secondi...")
+        time.sleep(60)
+
+except KeyboardInterrupt:
+    print("Programma terminato")
+    conn.close()
